@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { darkTheme, NConfigProvider } from "naive-ui";
+import JETTheme from './themes/JET';
 import ScopeNavigator from "./components/ScopeNavigator.vue";
 import WindowTitleBar from "./components/WindowTitleBar.vue";
 import NamespaceNavigator from "./components/NamespaceNavigator.vue";
@@ -7,7 +8,7 @@ import NotificationDrawer from "./components/NotificationDrawer.vue";
 </script>
 
 <template>
-  <n-config-provider :theme="darkTheme">
+  <n-config-provider :theme="darkTheme" :theme-overrides="JETTheme">
     <div class="relative flex">
       <WindowTitleBar>
         <ScopeNavigator />
@@ -15,7 +16,9 @@ import NotificationDrawer from "./components/NotificationDrawer.vue";
 
       <div class="flex flex-grow mt-12 view-wrapper">
         <NamespaceNavigator>
-          <router-view />
+          <div>
+            <router-view />
+          </div>
         </NamespaceNavigator>
       </div>
     </div>

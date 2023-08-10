@@ -1,4 +1,4 @@
-import devtools from "@vue/devtools";
+// import devtools from "@vue/devtools";
 import { createApp } from "vue";
 
 import { createPinia } from "pinia";
@@ -11,9 +11,9 @@ import "./styles.css";
 import "vfonts/IBMPlexMono.css";
 import App from "./App.vue";
 
-if (process.env.NODE_ENV === "development") {
-  devtools.connect("http://localhost", 8098);
-}
+// if (process.env.NODE_ENV === "development") {
+//   devtools.connect("http://localhost", 8098);
+// }
 
 const pinia = createPinia();
 const app = createApp(App).use(router).use(pinia);

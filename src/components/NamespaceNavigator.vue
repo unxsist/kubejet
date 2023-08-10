@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { MenuOption, NMenu, NLayout, NLayoutSider } from "naive-ui";
+import { MenuOption, NMenu, NLayout, NLayoutSider, NScrollbar } from "naive-ui";
 import { ref, h } from "vue";
 import { RouterLink, useRoute } from "vue-router";
 import { renderIcon } from "../utils";
@@ -66,7 +66,9 @@ const menuOptions: MenuOption[] = [
       />
     </n-layout-sider>
     <n-layout>
-      <slot />
+      <n-scrollbar>
+        <slot />
+      </n-scrollbar>
     </n-layout>
   </n-layout>
 </template>
