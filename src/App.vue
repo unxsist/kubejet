@@ -22,7 +22,6 @@ const openSettings = () => {
 
   const settingsView = new WebviewWindow('Settings', {
     url: '/settings',
-    alwaysOnTop: true,
     decorations: false,
     resizable: false,
     center: true,

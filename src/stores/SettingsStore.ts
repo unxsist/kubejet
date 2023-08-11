@@ -1,11 +1,19 @@
 import { defineStore } from "pinia";
 import { ref } from "vue";
-
 import { exists, readTextFile, writeTextFile, createDir, BaseDirectory } from '@tauri-apps/api/fs'
+import {
+    ClusterSettings,
+    DefaultClusterSettings,
+    DefaultRouteSettings,
+    DefaultSettings,
+    RouteSettings,
+    Settings
+} from "../settings";
+import { jsonMapReviver, jsonMapReplacer } from "../utils";
 
 export const useSettingsStore = defineStore("settings", () => {
     const currentRouteName = ref("");
-    const settings = ref<Map<string, any>>(new Map<string, any>());
+    const settings = ref<Settings>({} as Settings);
     const settingsFile = 'settings.json'
 
     const initialize = async () => {
@@ -16,39 +24,49 @@ export const useSettingsStore = defineStore("settings", () => {
 
             await writeTextFile(
                 settingsFile,
-                JSON.stringify({}),
+                JSON.stringify(DefaultSettings, jsonMapReplacer),
                 { dir: BaseDirectory.AppConfig }
             );
         }
 
         const file = await readTextFile(settingsFile, { dir: BaseDirectory.AppConfig });
-        settings.value = new Map<string, any>(Object.entries(JSON.parse(file)));
+        settings.value = JSON.parse(file, jsonMapReviver) as Settings;
     }
 
     const save = async () => {
         await writeTextFile(
             settingsFile,
-            JSON.stringify(Object.fromEntries(settings.value)),
+            JSON.stringify(settings.value, jsonMapReplacer),
             { dir: BaseDirectory.AppConfig }
         );
     }
 
-    const set = (key: string, value: any) => {
-        settings.value.set(key, value);
+    const get = () : Settings => {
+        return settings.value;
+    }
+
+    const set = (newSettings: Settings) => {
+        settings.value = newSettings;
         save()
     }
 
-    const get = (key: string) => {
-        return settings.value.get(key);
+    const getForRoute = () : RouteSettings => {
+        return settings.value.routeSettings.get(currentRouteName.value) || DefaultRouteSettings;
     }
 
-    const getForRoute = (key: string) => {
-        return get(`routes.${currentRouteName.value}.${key}`);
+    const setForRoute = (routeSettings: RouteSettings) => {
+        settings.value.routeSettings.set(currentRouteName.value, routeSettings);
+        save()
     }
 
-    const setForRoute = (key: string, value: any) => {
-        set(`routes.${currentRouteName.value}.${key}`, value);
+    const getForCluster = (contextName: string) : ClusterSettings => {
+        return settings.value.clusterSettings.get(contextName) || DefaultClusterSettings;
     }
 
-    return { initialize, set, get, getForRoute, setForRoute, currentRouteName }
+    const setForCluster = (contextName: string, clusterSettings: ClusterSettings) => {
+        settings.value.clusterSettings.set(contextName, clusterSettings);
+        save()
+    }
+
+    return { initialize, get, set, getForRoute, setForRoute, getForCluster, setForCluster, currentRouteName }
 });

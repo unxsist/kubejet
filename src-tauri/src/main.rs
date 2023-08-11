@@ -118,32 +118,10 @@ async fn list_deployments(context: &str, namespace: &str) -> Result<Vec<Deployme
     return deployment_api.list(&ListParams::default()).await.map(|deployments| deployments.items).map_err(|err| SerializableKubeError::from(err));
 }
 
-#[tauri::command]
-fn open_settings_window(app: AppHandle) -> Result<(), String> {
-    let result = WindowBuilder::new(&app, "settings", WindowUrl::App("/settings".into()))
-        .fullscreen(false)
-        .resizable(false)
-        .always_on_top(true)
-        .decorations(false)
-        .title("Settings")
-        .center()
-        .build();
-    match result {
-        Ok(_) => {
-            println!("Window Created Successfully!");
-            Ok(())
-        }
-        Err(err) => {
-            println!("Failed to Create Window {}", err);
-            Err("Failed to create Window".to_string())
-        }
-    }
-}
-
 fn main() {
     let _ = fix_path_env::fix();
     tauri::Builder::default()
-        .invoke_handler(tauri::generate_handler![list_contexts, get_current_context, list_namespaces, list_pods, list_deployments, open_settings_window])
+        .invoke_handler(tauri::generate_handler![list_contexts, get_current_context, list_namespaces, list_pods, list_deployments])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
 }

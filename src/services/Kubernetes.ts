@@ -1,6 +1,13 @@
 import { V1Deployment, V1Namespace, V1Pod } from "@kubernetes/client-node";
 import { invoke } from "@tauri-apps/api/tauri";
 
+export interface KubernetesError {
+    message: string;
+    code: number;
+    reason: string;
+    details: any;
+}
+
 export class Kubernetes {
   static async getCurrentContext(): Promise<string> {
     return invoke("get_current_context", {});

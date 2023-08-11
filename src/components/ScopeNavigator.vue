@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { useContextStore } from "../stores/ContextStore";
-import { Kubernetes } from "../services/Kubernetes";
+import {Kubernetes, KubernetesError} from "../services/Kubernetes";
 import ScopeNavigatorNamespaceOption from "./ScopeNavigatorNamespaceOption.vue";
 import {NBreadcrumb, NBreadcrumbItem, NPopselect, SelectOption} from "naive-ui";
 import {computed, h, ref} from "vue";
@@ -17,7 +17,7 @@ const contexts = ref<{ label: string; value: string }[]>([]);
 const namespaces = ref<{ label: string; value: string }[]>([]);
 
 const sortedNamespaces = computed(() => {
-  const favorites = settingsStore.get(`${contextStore.currentContext}.namespace_favorites`) || [];
+  const favorites = settingsStore.getForCluster(contextStore.currentContext).favoriteNamespaces;
 
   return namespaces.value.slice().sort((a, b) => {
     if (favorites.includes(a.value) && !favorites.includes(b.value)) {
@@ -48,7 +48,7 @@ const loadContexts = () => {
 const loadNamespaces = () => {
   namespaces.value = cacheStore.get("ns_" + contextStore.currentContext) || [];
 
-  const favorites = settingsStore.get(`${contextStore.currentContext}.namespace_favorites`) || [];
+  const favorites = settingsStore.getForCluster(contextStore.currentContext).favoriteNamespaces;
   if (favorites.length > 0) {
     setNamespace(favorites[0]);
   }
@@ -65,9 +65,8 @@ const loadNamespaces = () => {
       namespaces.value = namespaceOptions;
       cacheStore.set("ns_" + contextStore.currentContext, namespaceOptions);
     })
-    .catch((reason: string) => {
-      console.log(reason);
-        notificationStore.error(`Failed to load namespaces: ${reason}`)
+    .catch((error: KubernetesError) => {
+        notificationStore.error(`Failed to load namespaces: ${error.message}`)
     });
 };
 

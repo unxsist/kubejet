@@ -12,21 +12,21 @@ const props = defineProps<{
 }>();
 
 const isFavorite = computed(() => {
-  const favorites = settingsStore.get(`${props.context}.namespace_favorites`) || [];
+  const favorites = settingsStore.getForCluster(props.context).favoriteNamespaces;
 
   return favorites.includes(props.namespace);
 });
 
 const updateFavorite = () => {
-  let favorites = settingsStore.get(`${props.context}.namespace_favorites`) || [];
+  const clusterSettings = settingsStore.getForCluster(props.context);
 
   if (isFavorite.value) {
-    favorites = favorites.filter((favorite: string) => favorite !== props.namespace);
+    clusterSettings.favoriteNamespaces = clusterSettings.favoriteNamespaces.filter((favorite: string) => favorite !== props.namespace);
   } else {
-    favorites.push(props.namespace);
+    clusterSettings.favoriteNamespaces.push(props.namespace);
   }
 
-  settingsStore.set(`${props.context}.namespace_favorites`, favorites);
+  settingsStore.setForCluster(props.context, clusterSettings);
 };
 
 </script>

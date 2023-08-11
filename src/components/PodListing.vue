@@ -7,9 +7,11 @@ import { useContextStore } from "../stores/ContextStore";
 import { useNotificationStore } from "../stores/NotificationStore";
 import { useCacheStore } from "../stores/CacheStore.ts";
 import {useRouter} from "vue-router";
+import {useSettingsStore} from "../stores/SettingsStore.ts";
 
 const router = useRouter();
 const contextStore = useContextStore();
+const settings = useSettingsStore().get();
 const cacheStore = useCacheStore();
 const notificationStore = useNotificationStore();
 
@@ -65,6 +67,10 @@ const rowProps = (row: V1Pod) => {
 const pods = ref<V1Pod[]>(cacheStore.get("pods") || []);
 
 async function getPods() {
+  if (contextStore.currentNamespace == "" && !settings.generalSettings.loadDataWithoutActiveNamespace) {
+    return;
+  }
+
   Kubernetes.getPods(contextStore.currentContext, contextStore.currentNamespace)
     .then((result: V1Pod[]) => {
       pods.value = result;
