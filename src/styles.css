@@ -26,4 +26,5 @@ body,
   background: rgb(16, 16, 20);
   user-select: none;
   cursor: default;
+  color: #FFF;
 }

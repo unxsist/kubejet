@@ -4,5 +4,8 @@ export default {
         primaryHoverColor: '#FFEAD4',
         primaryColorPressed: '#FF8000',
         primaryColorSuppl: '#F75E28',
+    },
+    "Tabs": {
+        "tabGapMediumLineVertical": "0px"
     }
 }

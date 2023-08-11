@@ -1,16 +1,36 @@
 <script setup lang="ts">
 import { useContextStore } from "../stores/ContextStore";
 import { Kubernetes } from "../services/Kubernetes";
-import { NBreadcrumb, NBreadcrumbItem, NPopselect } from "naive-ui";
-import { ref } from "vue";
+import ScopeNavigatorNamespaceOption from "./ScopeNavigatorNamespaceOption.vue";
+import {NBreadcrumb, NBreadcrumbItem, NPopselect, SelectOption} from "naive-ui";
+import {computed, h, ref} from "vue";
 import { useCacheStore } from "../stores/CacheStore";
+import {useNotificationStore} from "../stores/NotificationStore.ts";
+import {useSettingsStore} from "../stores/SettingsStore.ts";
 
 const contextStore = useContextStore();
+const notificationStore = useNotificationStore();
+const settingsStore = useSettingsStore();
 const cacheStore = useCacheStore();
 
 const contexts = ref<{ label: string; value: string }[]>([]);
 const namespaces = ref<{ label: string; value: string }[]>([]);
-const error = ref("");
+
+const sortedNamespaces = computed(() => {
+  const favorites = settingsStore.get(`${contextStore.currentContext}.namespace_favorites`) || [];
+
+  return namespaces.value.slice().sort((a, b) => {
+    if (favorites.includes(a.value) && !favorites.includes(b.value)) {
+      return -1;
+    } else if (!favorites.includes(a.value) && favorites.includes(b.value)) {
+      return 1;
+    } else if (favorites.includes(a.value) && favorites.includes(b.value)) {
+      return b.label.localeCompare(a.label);
+    } else {
+      return a.label.localeCompare(b.label);
+    }
+  });
+})
 
 const loadContexts = () => {
   Kubernetes.getContexts().then((result) => {
@@ -27,7 +47,12 @@ const loadContexts = () => {
 
 const loadNamespaces = () => {
   namespaces.value = cacheStore.get("ns_" + contextStore.currentContext) || [];
-  error.value = "";
+
+  const favorites = settingsStore.get(`${contextStore.currentContext}.namespace_favorites`) || [];
+  if (favorites.length > 0) {
+    setNamespace(favorites[0]);
+  }
+
   Kubernetes.getNamespaces(contextStore.currentContext)
     .then((result) => {
       const namespaceOptions = result.map((namespace) => {
@@ -41,9 +66,20 @@ const loadNamespaces = () => {
       cacheStore.set("ns_" + contextStore.currentContext, namespaceOptions);
     })
     .catch((reason: string) => {
-      error.value = reason;
+      console.log(reason);
+        notificationStore.error(`Failed to load namespaces: ${reason}`)
     });
 };
+
+const renderNamespaceOption = (option: SelectOption) => {
+  return h(
+    ScopeNavigatorNamespaceOption,
+    {
+      context: contextStore.currentContext,
+      namespace: option.value as string
+    }
+  );
+}
 
 const setContext = (context: string) => {
   contextStore.currentContext = context;
@@ -84,7 +120,8 @@ loadContexts();
           size="huge"
           :value="contextStore.currentNamespace"
           :on-update:value="setNamespace"
-          :options="namespaces"
+          :options="sortedNamespaces"
+          :render-label="renderNamespaceOption"
           scrollable
         >
           <div class="trigger">

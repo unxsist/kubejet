@@ -1,9 +1,13 @@
 <script setup lang="ts">
-import { Settings24Regular } from "@vicons/fluent";
+import { Dismiss20Filled } from "@vicons/fluent";
 import { NIcon } from "naive-ui";
 import AppIcon from "../assets/AppIcon.svg";
+import { emit } from "@tauri-apps/api/event";
 
-const emit = defineEmits(['open-settings']);
+const requestClose = () => {
+  emit('tauri://close-requested');
+}
+
 </script>
 <template>
   <div
@@ -11,9 +15,11 @@ const emit = defineEmits(['open-settings']);
     data-tauri-drag-region
   >
     <AppIcon class="h-8 text-white mr-2 animate-spin reverse" />
-    <slot />
-    <n-icon size="20" class="ml-auto" @click="emit('open-settings')">
-      <Settings24Regular class="text-white" />
+    <div class="text-white">
+      <slot />
+    </div>
+    <n-icon size="20" class="ml-auto" @click="requestClose">
+      <Dismiss20Filled class="text-white" />
     </n-icon>
   </div>
 </template>

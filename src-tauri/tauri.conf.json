@@ -13,7 +13,10 @@
   "tauri": {
     "macOSPrivateApi": true,
     "allowlist": {
-      "all": true
+      "all": true,
+      "fs": {
+        "scope": ["$APPCONFIG/", "$APPCONFIG/*"]
+      }
     },
     "bundle": {
       "active": true,
