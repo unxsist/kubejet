@@ -11,7 +11,7 @@ import {useSettingsStore} from "../stores/SettingsStore.ts";
 
 const router = useRouter();
 const contextStore = useContextStore();
-const settings = useSettingsStore().get();
+const settingsStore = useSettingsStore();
 const cacheStore = useCacheStore();
 const notificationStore = useNotificationStore();
 
@@ -66,8 +66,12 @@ const rowProps = (row: V1Pod) => {
 
 const pods = ref<V1Pod[]>(cacheStore.get("pods") || []);
 
-async function getPods() {
-  if (contextStore.currentNamespace == "" && !settings.generalSettings.loadDataWithoutActiveNamespace) {
+async function getPods(isRefresh = false) {
+  if (!isRefresh) {
+    pods.value = [];
+  }
+
+  if (contextStore.currentNamespace == "" && !settingsStore.get().generalSettings.loadDataWithoutActiveNamespace) {
     return;
   }
 
@@ -77,16 +81,16 @@ async function getPods() {
       cacheStore.set("pods", result);
     })
     .catch((error: any) => {
-      notificationStore.add({
-        type: "error",
-        message: error.message,
-        date: new Date(),
-      });
+      notificationStore.error(error.message)
     });
 }
 
 onMounted(() => {
   getPods();
+
+  setInterval(() => {
+    getPods(true);
+  }, 2000);
 });
 
 const onRowClick = (row: V1Pod) => {

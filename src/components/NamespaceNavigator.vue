@@ -1,13 +1,13 @@
 <script setup lang="ts">
 import { MenuOption, NMenu, NLayout, NLayoutSider, NScrollbar } from "naive-ui";
-import { ref, h } from "vue";
+import {ref, h, onMounted} from "vue";
 import { RouterLink, useRoute } from "vue-router";
 import { renderIcon } from "../utils";
 import { Box24Regular, ArrowClockwise24Filled } from "@vicons/fluent";
 import {Key} from "naive-ui/es/menu/src/interface";
 
 const route = useRoute();
-
+const emit = defineEmits(['mounted']);
 const collapsed = ref(true);
 
 const menuOptions: MenuOption[] = [
@@ -44,6 +44,11 @@ const menuOptions: MenuOption[] = [
     icon: renderIcon(ArrowClockwise24Filled),
   },
 ];
+
+onMounted(() => {
+  emit('mounted');
+});
+
 </script>
 <template>
   <n-layout has-sider>

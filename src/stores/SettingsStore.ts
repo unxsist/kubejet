@@ -51,7 +51,7 @@ export const useSettingsStore = defineStore("settings", () => {
     }
 
     const getForRoute = () : RouteSettings => {
-        return settings.value.routeSettings.get(currentRouteName.value) || DefaultRouteSettings;
+        return settings.value.routeSettings.get(currentRouteName.value) ?? DefaultRouteSettings;
     }
 
     const setForRoute = (routeSettings: RouteSettings) => {
@@ -60,7 +60,7 @@ export const useSettingsStore = defineStore("settings", () => {
     }
 
     const getForCluster = (contextName: string) : ClusterSettings => {
-        return settings.value.clusterSettings.get(contextName) || DefaultClusterSettings;
+        return settings.value.clusterSettings.get(contextName) ?? DefaultClusterSettings;
     }
 
     const setForCluster = (contextName: string, clusterSettings: ClusterSettings) => {

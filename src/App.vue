@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { darkTheme, NConfigProvider } from "naive-ui";
+import {darkTheme, NConfigProvider, NLayout} from "naive-ui";
 import JETTheme from './themes/JET';
 import ScopeNavigator from "./components/ScopeNavigator.vue";
 import WindowTitleBar from "./components/WindowTitleBar.vue";
@@ -9,9 +9,13 @@ import {computed, ref} from "vue";
 import SettingsTitleBar from "./components/SettingsTitleBar.vue";
 import {WebviewWindow} from "@tauri-apps/api/window";
 import {useRoute} from "vue-router";
+import {useSettingsStore} from "./stores/SettingsStore.ts";
+import TerminalManager from "./components/TerminalManager.vue";
 
 const route = useRoute();
+const settingsStore = useSettingsStore();
 const settingsOpen = ref(false);
+const viewportReady = ref(false);
 
 const isSettings = computed(() => {
   return route.matched.some((record) => record.name === 'Settings');
@@ -30,8 +34,10 @@ const openSettings = () => {
   });
 
   settingsView.listen('tauri://close-requested', () => {
-    settingsView.close();
-    settingsOpen.value = false;
+    settingsStore.initialize().then(() => {
+      settingsView.close();
+      settingsOpen.value = false;
+    })
   });
 }
 </script>
@@ -49,8 +55,8 @@ const openSettings = () => {
       </SettingsTitleBar>
 
       <div class="flex flex-grow mt-12 view-wrapper" :class="{ 'is-settings': isSettings }">
-        <NamespaceNavigator v-if="!isSettings">
-          <div>
+        <NamespaceNavigator v-if="!isSettings" @mounted="viewportReady = true">
+          <div id="main-viewport">
             <router-view />
           </div>
         </NamespaceNavigator>
@@ -60,6 +66,7 @@ const openSettings = () => {
       </div>
     </div>
     <NotificationDrawer v-if="!isSettings" />
+    <TerminalManager v-if="!isSettings && viewportReady" />
   </n-config-provider>
 </template>
 

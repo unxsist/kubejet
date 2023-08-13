@@ -16,7 +16,7 @@ const persistDrawerWidth = (width: number) => {
 };
 </script>
 <template>
-  <n-drawer :show="true" :default-width="routeSettings.drawerWidth ?? 500" :show-mask="false" :placement="'right'" mask-closable close-on-esc resizable @on-esc="router.back" @update-width="persistDrawerWidth">
+  <n-drawer to="#main-viewport" :show="true" :default-width="routeSettings.drawerWidth ?? 500" :show-mask="false" :placement="'right'" mask-closable close-on-esc resizable @on-esc="router.back" @update-width="persistDrawerWidth">
     <n-drawer-content :header-style="{ display: 'none' }" :body-content-style="{ padding: '0' }" title="Stoner" :native-scrollbar="false">
       <router-view />
     </n-drawer-content>

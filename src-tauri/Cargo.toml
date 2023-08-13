@@ -20,6 +20,7 @@ tokio = "1.29.1"
 kube = { version = "0.84.0", features = ["runtime", "derive"] }
 k8s-openapi = { version = "0.18.0", features = ["v1_26"] }
 fix-path-env = { git = "https://github.com/tauri-apps/fix-path-env-rs", branch = "dev" }
+portable-pty = "0.8.1"
 
 [features]
 # this feature is used for production builds or when `devPath` points to the filesystem

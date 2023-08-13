@@ -16,6 +16,15 @@
       "all": true,
       "fs": {
         "scope": ["$APPCONFIG/", "$APPCONFIG/*"]
+      },
+      "shell": {
+        "scope": [
+          {
+            "name": "kubectl",
+            "cmd": "kubectl",
+            "args": true
+          }
+        ]
       }
     },
     "bundle": {
