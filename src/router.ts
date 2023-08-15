@@ -3,7 +3,7 @@ import PodListing from "./components/PodListing.vue";
 import DeploymentListing from "./components/DeploymentListing.vue";
 import PodDetails from "./components/pods/PodDetails.vue";
 import Drawer from "./components/Drawer.vue";
-import {useSettingsStore} from "./stores/SettingsStore.ts";
+import { useSettingsStore } from "./stores/SettingsStore.ts";
 import Settings from "./components/Settings.vue";
 import General from "./components/settings/General.vue";
 import About from "./components/settings/About.vue";
@@ -29,10 +29,10 @@ const router = createRouter({
               name: "PodDetails",
               path: "",
               component: PodDetails,
-            }
-          ]
-        }
-      ]
+            },
+          ],
+        },
+      ],
     },
     {
       name: "DeploymentListing",
@@ -48,15 +48,15 @@ const router = createRouter({
         {
           name: "General",
           path: "general",
-          component: General
+          component: General,
         },
         {
           name: "About",
           path: "about",
-          component: About
-        }
-      ]
-    }
+          component: About,
+        },
+      ],
+    },
   ],
 });
 
@@ -64,7 +64,7 @@ router.beforeEach(async (to) => {
   const settingsStore = useSettingsStore();
   settingsStore.currentRouteName = to.name as string;
 
-  return true
+  return true;
 });
 
 export default router;

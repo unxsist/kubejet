@@ -1,22 +1,24 @@
 <script setup lang="ts">
-import {NDrawer, NDrawerContent} from "naive-ui";
-import {useNotificationStore} from "../stores/NotificationStore";
-import {ref} from "vue";
-import NotificationDrawerMessage from './NotificationDrawerMessage.vue';
+import { NDrawer, NDrawerContent } from "naive-ui";
+import { useNotificationStore } from "../stores/NotificationStore";
+import { ref } from "vue";
+import NotificationDrawerMessage from "./NotificationDrawerMessage.vue";
 
 const notificationStore = useNotificationStore();
-const open = ref(false)
-const updateKey = ref(0)
+const open = ref(false);
+const updateKey = ref(0);
 
 setInterval(() => {
   updateKey.value++;
-}, 1000)
+}, 1000);
 </script>
 
 <template>
   <div>
     <NotificationDrawerMessage
-      v-if="notificationStore.hasRecentNotifications() && notificationStore.latest"
+      v-if="
+        notificationStore.hasRecentNotifications() && notificationStore.latest
+      "
       :key="updateKey"
       :notification="notificationStore.latest"
       :fixed="true"
@@ -30,7 +32,11 @@ setInterval(() => {
       No new messages ({{ notificationStore.notifications.length }} in total)
     </div>
     <n-drawer v-model:show="open" placement="bottom" resizable>
-      <n-drawer-content :native-scrollbar="false" body-content-style="padding: 0;" closable>
+      <n-drawer-content
+        :native-scrollbar="false"
+        body-content-style="padding: 0;"
+        closable
+      >
         <template #header>
           <div>Messages</div>
         </template>

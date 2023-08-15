@@ -1,20 +1,22 @@
 <script setup lang="ts">
-import {RouteLocationRaw} from "vue-router";
+import { RouteLocationRaw } from "vue-router";
 import { NButton, NIcon } from "naive-ui";
 import { Dismiss20Filled } from "@vicons/fluent";
 
-withDefaults(defineProps<{
-  title: string;
-  closeRoute: RouteLocationRaw
-}>(), {
-  title: "Drawer",
-  closeRoute: "/",
-});
-
+withDefaults(
+  defineProps<{
+    title: string;
+    closeRoute: RouteLocationRaw;
+  }>(),
+  {
+    title: "Drawer",
+    closeRoute: "/",
+  },
+);
 </script>
 <template>
   <div class="drawer-header flex items-center justify-between px-4 h-12">
-    <span>{{ title }}</span>
+    <span class="font-bold">{{ title }}</span>
     <router-link :to="closeRoute">
       <n-button quaternary>
         <n-icon :size="24">

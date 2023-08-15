@@ -1,21 +1,29 @@
 <script setup lang="ts">
 import { NTabs, NTab } from "naive-ui";
-import {useRoute, useRouter} from "vue-router";
-import {ref} from "vue";
+import { useRoute, useRouter } from "vue-router";
+import { ref } from "vue";
 
-const router = useRouter()
-const route = useRoute()
+const router = useRouter();
+const route = useRoute();
 
 const activeTab = ref(route.path);
 
 const to = (path: string) => {
-  router.push(path)
-}
+  router.push(path);
+};
 </script>
 <template>
   <div class="flex h-full">
-    <n-tabs v-model:value="activeTab" type="line" placement="left" class="w-auto h-full settings-tabs" @update-value="console.log">
-      <n-tab name="/settings/general" @click="to('/settings/general')">General</n-tab>
+    <n-tabs
+      v-model:value="activeTab"
+      type="line"
+      placement="left"
+      class="w-auto h-full settings-tabs"
+      @update-value="console.log"
+    >
+      <n-tab name="/settings/general" @click="to('/settings/general')"
+        >General</n-tab
+      >
       <n-tab name="/settings/about" @click="to('/settings/about')">About</n-tab>
     </n-tabs>
     <div class="p-4">

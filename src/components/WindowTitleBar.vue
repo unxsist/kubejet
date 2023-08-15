@@ -3,7 +3,7 @@ import { Settings24Regular } from "@vicons/fluent";
 import { NIcon } from "naive-ui";
 import AppIcon from "../assets/AppIcon.svg";
 
-const emit = defineEmits(['open-settings']);
+const emit = defineEmits(["open-settings"]);
 </script>
 <template>
   <div
@@ -28,5 +28,4 @@ const emit = defineEmits(['open-settings']);
   animation-direction: reverse;
   animation-duration: 10s;
 }
-
 </style>

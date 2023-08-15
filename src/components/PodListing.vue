@@ -1,13 +1,13 @@
 <script setup lang="ts">
-import {DataTableColumn, NDataTable} from "naive-ui";
-import {onMounted, ref} from "vue";
+import { DataTableColumn, NDataTable } from "naive-ui";
+import { onMounted, ref } from "vue";
 import { V1Pod } from "@kubernetes/client-node";
 import { Kubernetes } from "../services/Kubernetes";
 import { useContextStore } from "../stores/ContextStore";
 import { useNotificationStore } from "../stores/NotificationStore";
 import { useCacheStore } from "../stores/CacheStore.ts";
-import {useRouter} from "vue-router";
-import {useSettingsStore} from "../stores/SettingsStore.ts";
+import { useRouter } from "vue-router";
+import { useSettingsStore } from "../stores/SettingsStore.ts";
 
 const router = useRouter();
 const contextStore = useContextStore();
@@ -19,7 +19,7 @@ contextStore.$subscribe(() => {
   getPods();
 });
 
-const columns : DataTableColumn[] = [
+const columns: DataTableColumn[] = [
   {
     title: "Name",
     key: "metadata.name",
@@ -71,7 +71,10 @@ async function getPods(isRefresh = false) {
     pods.value = [];
   }
 
-  if (contextStore.currentNamespace == "" && !settingsStore.get().generalSettings.loadDataWithoutActiveNamespace) {
+  if (
+    contextStore.currentNamespace == "" &&
+    !settingsStore.get().generalSettings.loadDataWithoutActiveNamespace
+  ) {
     return;
   }
 
@@ -81,7 +84,7 @@ async function getPods(isRefresh = false) {
       cacheStore.set("pods", result);
     })
     .catch((error: any) => {
-      notificationStore.error(error.message)
+      notificationStore.error(error.message);
     });
 }
 
@@ -94,7 +97,7 @@ onMounted(() => {
 });
 
 const onRowClick = (row: V1Pod) => {
-  router.push('/pods/' + row.metadata?.name);
+  router.push("/pods/" + row.metadata?.name);
 };
 </script>
 

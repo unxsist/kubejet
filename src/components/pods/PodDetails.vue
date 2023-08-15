@@ -1,34 +1,87 @@
 <script setup lang="ts">
-import {useRoute} from "vue-router";
-import { NButton } from "naive-ui";
+import { useRoute } from "vue-router";
+import { NStatistic, NTabs, NTabPane, NIcon } from "naive-ui";
 import DrawerHeader from "../DrawerHeader.vue";
-import {Command} from "@tauri-apps/api/shell";
-import {useContextStore} from "../../stores/ContextStore.ts";
+import { useContextStore } from "../../stores/ContextStore";
+import {onBeforeMount, ref} from "vue";
+import {V1Container, V1Pod} from "@kubernetes/client-node";
+import {Kubernetes} from "../../services/Kubernetes";
+import ContainerDetails from "./ContainerDetails.vue";
+import Terminal from "../Terminal.vue";
+import { Terminal3270 } from '@vicons/carbon'
 
+const terminals = ref<{ title: string, initCommand: string[] }[]>([]);
 const contextStore = useContextStore();
 const route = useRoute();
+const pod = ref<V1Pod>({});
 
-const openShell = () => {
-  const command = new Command("kubectl", ["exec", "--tty", "--stdin", route.params.podName as string, "--context", contextStore.currentContext, "--namespace", contextStore.currentNamespace,  "--", "/bin/bash"]);
-  command.on('close', data => {
-    console.log(`command finished with code ${data.code} and signal ${data.signal}`)
-  });
-  command.on('error', error => console.error(`command error: "${error}"`));
-  command.stdout.on('data', line => console.log(`command stdout: "${line}"`));
-  command.stderr.on('data', line => console.log(`command stderr: "${line}"`));
+onBeforeMount( async () => {
+  pod.value = await Kubernetes.getPod(contextStore.currentContext, contextStore.currentNamespace, route.params.podName as string);
+})
 
-  command.spawn().then((child) => {
-    child.write("ls -la\n");
+// const spawnShellTerminal = () => {
+//   terminalStore.createTerminal(route.params.podName as string, [
+//     "kubectl",
+//     "exec",
+//     "--tty",
+//     "--stdin",
+//     route.params.podName as string,
+//     "--context",
+//     contextStore.currentContext,
+//     "--namespace",
+//     contextStore.currentNamespace,
+//     "--",
+//     "/bin/bash",
+//   ]);
+// };
+
+const createShellForContainer = (container: V1Container) => {
+  terminals.value.push({
+    title: container.name as string,
+    initCommand: [
+      "kubectl",
+      "exec",
+      "--tty",
+      "--stdin",
+      route.params.podName as string,
+      "--context",
+      contextStore.currentContext,
+      "--namespace",
+      contextStore.currentNamespace,
+      "-c",
+      container.name as string,
+      "--",
+      "/bin/bash",
+    ]
   })
-
 };
 </script>
 <template>
   <div>
-    <DrawerHeader :title="route.params.podName as string" :close-route="'/pods'" />
-    <div class="flex justify-end p-2 space-x-2">
-      <n-button size="small">Logs</n-button>
-      <n-button size="small" @click="openShell">Shell</n-button>
+    <DrawerHeader
+      :title="route.params.podName as string"
+      :close-route="'/pods'"
+    />
+    <div class="flex flex-col p-4">
+      <n-statistic label="Age" :value="'3 days'" />
     </div>
+    <n-tabs type="card">
+      <template #prefix>
+        <div class="w-1"></div>
+      </template>
+      <n-tab-pane name="overview" tab="Overview">
+      </n-tab-pane>
+      <n-tab-pane name="containers" tab="Containers">
+        <ContainerDetails v-for="container in pod.spec?.containers" :key="container.name" :container="container" @shell-requested="createShellForContainer(container)" />
+      </n-tab-pane>
+      <n-tab-pane name="logs" tab="Logs">
+      </n-tab-pane>
+      <n-tab-pane v-for="terminal in terminals" :key="terminal.title" display-directive="show" :name="terminal.title" :tab="`Shell: ${terminal.title}`" closable>
+        <template #tab>
+          <NIcon size="10"><Terminal3270 /></NIcon> {{ terminal.title }}
+        </template>
+        <Terminal :init-command="terminal.initCommand" />
+      </n-tab-pane>
+    </n-tabs>
   </div>
 </template>

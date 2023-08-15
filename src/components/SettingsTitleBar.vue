@@ -5,9 +5,8 @@ import AppIcon from "../assets/AppIcon.svg";
 import { emit } from "@tauri-apps/api/event";
 
 const requestClose = () => {
-  emit('tauri://close-requested');
-}
-
+  emit("tauri://close-requested");
+};
 </script>
 <template>
   <div
@@ -34,5 +33,4 @@ const requestClose = () => {
   animation-direction: reverse;
   animation-duration: 10s;
 }
-
 </style>

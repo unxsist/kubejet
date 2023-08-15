@@ -8,14 +8,16 @@ use std::{
     time::Duration,
 };
 use std::collections::HashMap;
+use std::ffi::OsString;
 use k8s_openapi::api::apps::v1::Deployment;
 use kube::{Client, api::{Api}, Error, Config};
 use k8s_openapi::api::core::v1::{Namespace, Pod};
 use kube::api::{ListParams};
 use kube::config::{Kubeconfig, KubeconfigError, KubeConfigOptions};
 use serde::{Serialize};
-use portable_pty::{native_pty_system, CommandBuilder, PtyPair, PtySize};
-use tauri::{async_runtime::Mutex as AsyncMutex, Manager, State};
+use portable_pty::{native_pty_system, CommandBuilder, PtySize};
+use tauri::Manager;
+use uuid::Uuid;
 
 #[derive(Debug, Serialize)]
 struct SerializableKubeError {
@@ -118,6 +120,14 @@ async fn list_pods(context: &str, namespace: &str) -> Result<Vec<Pod>, Serializa
 }
 
 #[tauri::command]
+async fn get_pod(context: &str, namespace: &str, name: &str) -> Result<Pod, SerializableKubeError> {
+    let client = client_with_context(context).await?;
+    let pod_api: Api<Pod> = Api::namespaced(client, namespace);
+
+    return pod_api.get(name).await.map_err(|err| SerializableKubeError::from(err));
+}
+
+#[tauri::command]
 async fn list_deployments(context: &str, namespace: &str) -> Result<Vec<Deployment>, SerializableKubeError> {
     let client = client_with_context(context).await?;
     let deployment_api: Api<Deployment> = Api::namespaced(client, namespace);
@@ -126,16 +136,15 @@ async fn list_deployments(context: &str, namespace: &str) -> Result<Vec<Deployme
 }
 
 struct TerminalSession {
-    pty_pair: PtyPair,
     writer: Arc<Mutex<Box<dyn Write + Send>>>,
 }
 
 static TTY_SESSIONS: Mutex<Option<HashMap<String, TerminalSession>>> = Mutex::new(None);
 
 #[tauri::command]
-fn create_tty_session(app_handle: tauri::AppHandle) -> String {
+fn create_tty_session(app_handle: tauri::AppHandle, init_command: Vec<String>) -> String {
     if TTY_SESSIONS.lock().unwrap().is_none() {
-        TTY_SESSIONS.lock().unwrap().replace(HashMap::new());
+        *TTY_SESSIONS.lock().unwrap() = Some(HashMap::new());
     }
 
     let pty_system = native_pty_system();
@@ -149,7 +158,7 @@ fn create_tty_session(app_handle: tauri::AppHandle) -> String {
     #[cfg(target_os = "windows")]
     let cmd = CommandBuilder::new("powershell.exe");
     #[cfg(not(target_os = "windows"))]
-    let cmd = CommandBuilder::new("bash");
+    let cmd = CommandBuilder::from_argv(init_command.into_iter().map(|s| OsString::from(s)).collect());
 
     let mut child = pty_pair.slave.spawn_command(cmd).unwrap();
     thread::spawn(move || {
@@ -159,7 +168,8 @@ fn create_tty_session(app_handle: tauri::AppHandle) -> String {
     let reader = pty_pair.master.try_clone_reader().unwrap();
     let reader = Arc::new(Mutex::new(Some(BufReader::new(reader))));
 
-    let session_id = "test".to_string();
+    // generate a random session id
+    let session_id = Uuid::new_v4().to_string();
     let thread_session_id = session_id.clone();
 
     thread::spawn(move || {
@@ -180,7 +190,6 @@ fn create_tty_session(app_handle: tauri::AppHandle) -> String {
 
     let writer = pty_pair.master.take_writer().unwrap();
     TTY_SESSIONS.lock().unwrap().as_mut().unwrap().insert(session_id.clone(), TerminalSession {
-        pty_pair,
         writer: Arc::new(Mutex::new(writer)),
     });
 
@@ -219,7 +228,7 @@ fn main() {
     let _ = fix_path_env::fix();
 
     tauri::Builder::default()
-        .invoke_handler(tauri::generate_handler![list_contexts, get_current_context, list_namespaces, list_pods, list_deployments, create_tty_session, write_to_pty])
+        .invoke_handler(tauri::generate_handler![list_contexts, get_current_context, list_namespaces, list_pods, get_pod, list_deployments, create_tty_session, write_to_pty])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
 }

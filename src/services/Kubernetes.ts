@@ -2,10 +2,10 @@ import { V1Deployment, V1Namespace, V1Pod } from "@kubernetes/client-node";
 import { invoke } from "@tauri-apps/api/tauri";
 
 export interface KubernetesError {
-    message: string;
-    code: number;
-    reason: string;
-    details: any;
+  message: string;
+  code: number;
+  reason: string;
+  details: any;
 }
 
 export class Kubernetes {
@@ -23,6 +23,10 @@ export class Kubernetes {
 
   static async getPods(context: string, namespace: string): Promise<V1Pod[]> {
     return invoke("list_pods", { context: context, namespace: namespace });
+  }
+
+  static async getPod(context: string, namespace: string, name: string): Promise<V1Pod> {
+    return invoke("get_pod", { context: context, namespace: namespace, name: name });
   }
 
   static async getDeployments(
