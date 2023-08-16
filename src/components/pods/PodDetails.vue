@@ -8,9 +8,11 @@ import {V1Container, V1Pod} from "@kubernetes/client-node";
 import {Kubernetes} from "../../services/Kubernetes";
 import ContainerDetails from "./ContainerDetails.vue";
 import Terminal from "../Terminal.vue";
-import { Terminal3270 } from '@vicons/carbon'
+import { Terminal as TerminalIcon } from '@vicons/carbon'
+import PodLogs from "./PodLogs.vue";
 
-const terminals = ref<{ title: string, initCommand: string[] }[]>([]);
+const activeTab = ref("overview");
+const terminals = ref<{ container: string, initCommand: string[] }[]>([]);
 const contextStore = useContextStore();
 const route = useRoute();
 const pod = ref<V1Pod>({});
@@ -19,25 +21,14 @@ onBeforeMount( async () => {
   pod.value = await Kubernetes.getPod(contextStore.currentContext, contextStore.currentNamespace, route.params.podName as string);
 })
 
-// const spawnShellTerminal = () => {
-//   terminalStore.createTerminal(route.params.podName as string, [
-//     "kubectl",
-//     "exec",
-//     "--tty",
-//     "--stdin",
-//     route.params.podName as string,
-//     "--context",
-//     contextStore.currentContext,
-//     "--namespace",
-//     contextStore.currentNamespace,
-//     "--",
-//     "/bin/bash",
-//   ]);
-// };
-
 const createShellForContainer = (container: V1Container) => {
+  if (terminals.value.find(t => t.container === container.name)) {
+    activeTab.value = container.name;
+    return;
+  }
+
   terminals.value.push({
-    title: container.name as string,
+    container: container.name as string,
     initCommand: [
       "kubectl",
       "exec",
@@ -53,11 +44,21 @@ const createShellForContainer = (container: V1Container) => {
       "--",
       "/bin/bash",
     ]
-  })
+  });
+
+  activeTab.value = container.name;
 };
+
+const closeShell = (name: string) => {
+  console.log(name);
+  const index = terminals.value.findIndex(t => t.container === name);
+  terminals.value.splice(index, 1);
+
+  activeTab.value = "containers";
+}
 </script>
 <template>
-  <div>
+  <div class="flex flex-col h-full">
     <DrawerHeader
       :title="route.params.podName as string"
       :close-route="'/pods'"
@@ -65,7 +66,7 @@ const createShellForContainer = (container: V1Container) => {
     <div class="flex flex-col p-4">
       <n-statistic label="Age" :value="'3 days'" />
     </div>
-    <n-tabs type="card">
+    <n-tabs v-model:value="activeTab" type="card" class="flex-grow" pane-class="h-full pt-0" @close="closeShell">
       <template #prefix>
         <div class="w-1"></div>
       </template>
@@ -75,10 +76,11 @@ const createShellForContainer = (container: V1Container) => {
         <ContainerDetails v-for="container in pod.spec?.containers" :key="container.name" :container="container" @shell-requested="createShellForContainer(container)" />
       </n-tab-pane>
       <n-tab-pane name="logs" tab="Logs">
+        <PodLogs :pod-name="pod.metadata?.name"/>
       </n-tab-pane>
-      <n-tab-pane v-for="terminal in terminals" :key="terminal.title" display-directive="show" :name="terminal.title" :tab="`Shell: ${terminal.title}`" closable>
+      <n-tab-pane v-for="terminal in terminals" :key="terminal.container" display-directive="show" :name="terminal.container" :tab="`Shell: ${terminal.container}`" closable>
         <template #tab>
-          <NIcon size="10"><Terminal3270 /></NIcon> {{ terminal.title }}
+          <NIcon size="18" class="mr-2"><TerminalIcon /></NIcon> {{ terminal.container }}
         </template>
         <Terminal :init-command="terminal.initCommand" />
       </n-tab-pane>

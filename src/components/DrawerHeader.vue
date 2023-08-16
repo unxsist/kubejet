@@ -15,7 +15,7 @@ withDefaults(
 );
 </script>
 <template>
-  <div class="drawer-header flex items-center justify-between px-4 h-12">
+  <div class="drawer-header flex items-center justify-between px-4 h-12" data-tauri-drag-region>
     <span class="font-bold">{{ title }}</span>
     <router-link :to="closeRoute">
       <n-button quaternary>

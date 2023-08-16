@@ -9,6 +9,7 @@ use std::{
 };
 use std::collections::HashMap;
 use std::ffi::OsString;
+use std::sync::atomic::{AtomicBool, Ordering};
 use k8s_openapi::api::apps::v1::Deployment;
 use kube::{Client, api::{Api}, Error, Config};
 use k8s_openapi::api::core::v1::{Namespace, Pod};
@@ -136,7 +137,7 @@ async fn list_deployments(context: &str, namespace: &str) -> Result<Vec<Deployme
 }
 
 struct TerminalSession {
-    writer: Arc<Mutex<Box<dyn Write + Send>>>,
+    writer: Arc<Mutex<Box<dyn Write + Send>>>
 }
 
 static TTY_SESSIONS: Mutex<Option<HashMap<String, TerminalSession>>> = Mutex::new(None);
@@ -155,6 +156,10 @@ fn create_tty_session(app_handle: tauri::AppHandle, init_command: Vec<String>) -
         pixel_height: 0,
     }).unwrap();
 
+    // generate a random session id
+    let session_id = Uuid::new_v4().to_string();
+    let thread_session_id = session_id.clone();
+
     #[cfg(target_os = "windows")]
     let cmd = CommandBuilder::new("powershell.exe");
     #[cfg(not(target_os = "windows"))]
@@ -167,10 +172,6 @@ fn create_tty_session(app_handle: tauri::AppHandle, init_command: Vec<String>) -
 
     let reader = pty_pair.master.try_clone_reader().unwrap();
     let reader = Arc::new(Mutex::new(Some(BufReader::new(reader))));
-
-    // generate a random session id
-    let session_id = Uuid::new_v4().to_string();
-    let thread_session_id = session_id.clone();
 
     thread::spawn(move || {
         let reader = reader.lock().unwrap().take();
@@ -197,6 +198,12 @@ fn create_tty_session(app_handle: tauri::AppHandle, init_command: Vec<String>) -
 }
 
 #[tauri::command]
+fn stop_tty_session(session_id: &str) {
+    // write to pty to kill the process, this can be a bash or powershell command
+    write_to_pty(session_id, "exit\n");
+}
+
+#[tauri::command]
 fn write_to_pty(session_id: &str, data: &str) {
     // First, lock the sessions map
     let sessions_lock = TTY_SESSIONS.lock().unwrap();
@@ -219,16 +226,11 @@ fn write_to_pty(session_id: &str, data: &str) {
 
 }
 
-// #[tauri::command]
-// async fn async_write_to_pty(data: &str, state: State<'_, TerminalState>) -> Result<(), ()> {
-//     write!(state.writer.lock().await, "{}", data).map_err(|_| ())
-// }
-
 fn main() {
     let _ = fix_path_env::fix();
 
     tauri::Builder::default()
-        .invoke_handler(tauri::generate_handler![list_contexts, get_current_context, list_namespaces, list_pods, get_pod, list_deployments, create_tty_session, write_to_pty])
+        .invoke_handler(tauri::generate_handler![list_contexts, get_current_context, list_namespaces, list_pods, get_pod, list_deployments, create_tty_session, stop_tty_session, write_to_pty])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
 }
