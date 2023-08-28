@@ -6,10 +6,11 @@ import { Kubernetes } from "../services/Kubernetes";
 import { useContextStore } from "../stores/ContextStore";
 import { useNotificationStore } from "../stores/NotificationStore";
 import { useCacheStore } from "../stores/CacheStore.ts";
-import { useRouter } from "vue-router";
+import {useRoute, useRouter} from "vue-router";
 import { useSettingsStore } from "../stores/SettingsStore.ts";
 
 const router = useRouter();
+const route = useRoute();
 const contextStore = useContextStore();
 const settingsStore = useSettingsStore();
 const cacheStore = useCacheStore();
@@ -78,8 +79,12 @@ async function getPods(isRefresh = false) {
     return;
   }
 
-  Kubernetes.getPods(contextStore.currentContext, contextStore.currentNamespace)
-    .then((result: V1Pod[]) => {
+  Kubernetes.getPods(
+      contextStore.currentContext,
+      contextStore.currentNamespace,
+      route.params.labelSelector as string,
+      route.params.fieldSelector as string
+  ).then((result: V1Pod[]) => {
       pods.value = result;
       cacheStore.set("pods", result);
     })
@@ -97,7 +102,13 @@ onMounted(() => {
 });
 
 const onRowClick = (row: V1Pod) => {
-  router.push("/pods/" + row.metadata?.name);
+  router.push({
+    name: 'PodDetailsGeneral',
+    params: {
+      podName: row.metadata?.name,
+      ...route.params
+    }
+  });
 };
 </script>
 

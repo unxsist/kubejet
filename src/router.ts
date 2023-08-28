@@ -17,7 +17,7 @@ const router = createRouter({
     },
     {
       name: "PodListing",
-      path: "/pods",
+      path: "/pods/labels-:labelSelector?/fields-:fieldSelector?",
       component: PodListing,
       children: [
         {
@@ -26,7 +26,7 @@ const router = createRouter({
           component: Drawer,
           children: [
             {
-              name: "PodDetails",
+              name: "PodDetailsGeneral",
               path: "",
               component: PodDetails,
             },
@@ -65,6 +65,10 @@ router.beforeEach(async (to) => {
   settingsStore.currentRouteName = to.name as string;
 
   return true;
+});
+
+router.afterEach(async () => {
+    console.log(router.currentRoute.value)
 });
 
 export default router;

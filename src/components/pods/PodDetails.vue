@@ -50,7 +50,6 @@ const createShellForContainer = (container: V1Container) => {
 };
 
 const closeShell = (name: string) => {
-  console.log(name);
   const index = terminals.value.findIndex(t => t.container === name);
   terminals.value.splice(index, 1);
 
@@ -61,7 +60,7 @@ const closeShell = (name: string) => {
   <div class="flex flex-col h-full">
     <DrawerHeader
       :title="route.params.podName as string"
-      :close-route="'/pods'"
+      :go-back-on-close="true"
     />
     <div class="flex flex-col p-4">
       <n-statistic label="Age" :value="'3 days'" />

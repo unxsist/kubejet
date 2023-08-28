@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { useContextStore } from "../stores/ContextStore";
+import {ScopeCrumb, useContextStore} from "../stores/ContextStore";
 import { Kubernetes, KubernetesError } from "../services/Kubernetes";
 import ScopeNavigatorNamespaceOption from "./ScopeNavigatorNamespaceOption.vue";
 import {
@@ -12,7 +12,9 @@ import { computed, h, ref } from "vue";
 import { useCacheStore } from "../stores/CacheStore";
 import { useNotificationStore } from "../stores/NotificationStore.ts";
 import { useSettingsStore } from "../stores/SettingsStore.ts";
+import {useRouter} from "vue-router";
 
+const router = useRouter();
 const contextStore = useContextStore();
 const notificationStore = useNotificationStore();
 const settingsStore = useSettingsStore();
@@ -23,7 +25,7 @@ const namespaces = ref<{ label: string; value: string }[]>([]);
 
 const sortedNamespaces = computed(() => {
   const favorites = settingsStore.getForCluster(
-    contextStore.currentContext,
+    contextStore.currentContext
   ).favoriteNamespaces;
 
   return namespaces.value.slice().sort((a, b) => {
@@ -56,7 +58,7 @@ const loadNamespaces = () => {
   namespaces.value = cacheStore.get("ns_" + contextStore.currentContext) || [];
 
   const favorites = settingsStore.getForCluster(
-    contextStore.currentContext,
+    contextStore.currentContext
   ).favoriteNamespaces;
   if (favorites.length > 0) {
     setNamespace(favorites[0]);
@@ -90,14 +92,39 @@ const setContext = (context: string) => {
   contextStore.currentContext = context;
   contextStore.currentNamespace = "";
 
+  const settings = settingsStore.get();
+  settings.activeContextSettings.currentContext = context;
+  settingsStore.set(settings);
+
+  router.replace('/');
+  contextStore.clearCrumbs();
+
   loadNamespaces();
 };
 
 const setNamespace = (namespace: string) => {
   contextStore.currentNamespace = namespace;
+
+  const settings = settingsStore.get();
+  settings.activeContextSettings.currentNamespace = namespace;
+  settingsStore.set(settings);
+
+  router.replace('/');
+
+  contextStore.clearCrumbs();
 };
 
 loadContexts();
+
+const routeToCrumb = (crumb: ScopeCrumb) => {
+  const indexOfCrumb = contextStore.crumbs.findIndex((c) => c.name === crumb.name);
+
+  router.go(-1 * (contextStore.crumbs.length - indexOfCrumb - 1));
+
+  for (let i = indexOfCrumb + 1; i < contextStore.crumbs.length; i++) {
+    contextStore.removeScopeCrumb(contextStore.crumbs[i]);
+  }
+};
 </script>
 
 <template>
@@ -136,6 +163,9 @@ loadContexts();
             <span class="text-white">Loading namespaces...</span>
           </template>
         </n-popselect>
+      </n-breadcrumb-item>
+      <n-breadcrumb-item v-for="(crumb, index) in contextStore.crumbs" :key="index" @click="routeToCrumb(crumb)">
+        {{ crumb.name }}
       </n-breadcrumb-item>
     </n-breadcrumb>
   </div>

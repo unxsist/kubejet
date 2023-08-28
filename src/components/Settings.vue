@@ -19,7 +19,6 @@ const to = (path: string) => {
       type="line"
       placement="left"
       class="w-auto h-full settings-tabs"
-      @update-value="console.log"
     >
       <n-tab name="/settings/general" @click="to('/settings/general')"
         >General</n-tab

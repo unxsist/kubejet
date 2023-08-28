@@ -63,10 +63,7 @@ onMounted(() => {
 });
 
 const kill = () => {
-  console.log('Stopping tty session')
-  invoke('stop_tty_session', { sessionId: sessionId.value }).then(() => {
-    console.log('Stopped tty session')
-  })
+  invoke('stop_tty_session', { sessionId: sessionId.value });
 }
 
 onUnmounted(() => {

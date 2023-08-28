@@ -19,12 +19,18 @@ watch(
   <div>
     <h3 class="m-0">General Settings</h3>
     <h4>Namespaces</h4>
-    <div>
+    <div class="space-y-2">
       <n-checkbox
         v-model:checked="
           settings.generalSettings.loadDataWithoutActiveNamespace
         "
         >Load data without active namespace</n-checkbox
+      >
+      <n-checkbox
+          v-model:checked="
+          settings.generalSettings.useLastActiveContextAndNamespace
+        "
+      >Remember last active context / namespace on application start</n-checkbox
       >
     </div>
   </div>

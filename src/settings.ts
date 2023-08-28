@@ -1,5 +1,11 @@
 export interface GeneralSettings {
   loadDataWithoutActiveNamespace: boolean;
+  useLastActiveContextAndNamespace: boolean;
+}
+
+export interface ActiveContextSettings {
+  currentContext: string;
+  currentNamespace: string;
 }
 
 export interface ClusterSettings {
@@ -12,6 +18,7 @@ export interface RouteSettings {
 
 export interface Settings {
   generalSettings: GeneralSettings;
+  activeContextSettings: ActiveContextSettings;
   clusterSettings: Map<string, ClusterSettings>;
   routeSettings: Map<string, RouteSettings>;
 }
@@ -19,6 +26,11 @@ export interface Settings {
 export const DefaultSettings: Settings = {
   generalSettings: {
     loadDataWithoutActiveNamespace: false,
+    useLastActiveContextAndNamespace: true,
+  },
+  activeContextSettings: {
+    currentContext: "",
+    currentNamespace: "",
   },
   clusterSettings: new Map<string, ClusterSettings>(),
   routeSettings: new Map<string, RouteSettings>(),

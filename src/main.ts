@@ -27,6 +27,11 @@ settingsStore.initialize().then(() => {
   Kubernetes.getCurrentContext()
     .then((context) => {
       contextStore.currentContext = context;
+
+      if (settingsStore.get().generalSettings.useLastActiveContextAndNamespace) {
+        contextStore.currentContext = settingsStore.get().activeContextSettings.currentContext;
+        contextStore.currentNamespace = settingsStore.get().activeContextSettings.currentNamespace;
+      }
     })
     .finally(() => {
       notificationStore.info("Welcome to kubejet!");
